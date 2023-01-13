@@ -92,3 +92,89 @@ JSONlib {
 		{ v }
 	}
 }
+
+
+TestJSONlib : UnitTest {
+	*prJsonFilePath {|fileName|
+		^this.class.filenameSymbol.asString.dirname +/+ "assets" +/+ fileName;
+	}
+
+	*prLoadJsonFile {|fileName|
+		^JSONlib.parseFile(TestJSONlib.prJsonFilePath(fileName));
+	}
+
+	// decoding tests - taken from json.org
+	// we only test for valid json
+	test_object {
+		var j = TestJSONlib.prLoadJsonFile("object.json");
+		this.assertEquals(j[\foo][\bar], "baz", "Parse nested objects");
+	}
+
+	test_array {
+		var j = TestJSONlib.prLoadJsonFile("array.json");
+		this.assertEquals(j, [20 , 30, 40], "JSON can contain also array as root");
+	}
+
+	test_values {
+		var j = TestJSONlib.prLoadJsonFile("values.json");
+		this.assertEquals(j[\string], "string", "Value can be strings");
+		this.assertEquals(j[\number], 10, "Value can be integer numebrs");
+		this.assertEquals(j[\object][\foo], "bar", "Values can be objects");
+		this.assertEquals(j[\array], [1, 2, 3], "Value can be an array");
+		this.assertEquals(j[\true], true, "Value can be true");
+		this.assertEquals(j[\false], false, "Value can be false");
+		this.assertEquals(j[\null].class, JSONlibNull, "Value can be null");
+	}
+
+	test_strings {
+		var j = TestJSONlib.prLoadJsonFile("strings.json");
+		this.assertEquals(j[\text], "lorem ipsum", "Standard text should be reproduced");
+		this.assertEquals(j[\quotationMark], "lorem\"ipsum", "Quotation needs to be escaped");
+		this.assertEquals(j[\reverseSolidus], "lorem\\ipsum", "Reverse Solidus needs to be escaped");
+		this.assertEquals(j[\solidus], "lorem/ipsum", "Solidus does not need a SC escape");
+		this.assertEquals(j[\backspace], "lorem%ipsum".format(0x08.asAscii), "Backspace needs escape");
+		this.assertEquals(j[\formfeed], "lorem%ipsum".format(0x0c.asAscii), "Formfeed needs escpae");
+		this.assertEquals(j[\linefeed], "lorem\nipsum", "Linebreak needs an escape");
+		this.assertEquals(j[\carriageReturn], "lorem\ripsum", "carriage return needs an escape");
+		this.assertEquals(j[\horizontalTab], "lorem\tipsum", "tab needs an escape");
+
+		// sc can not compare utf-8 chares so we make some extra steps
+		this.assertEquals(
+			j[\hexDigits].ascii[0..4].asAscii,
+			"lorem",
+			"Hex encoding should not affect ascii chars lorem",
+		);
+
+		this.assertEquals(
+			j[\hexDigits].ascii[5..8].wrap(0, 255),
+			// normaly hao is represented as e5a5bd in utf-8
+			[0xe5, 0xa5, 0xbd, 0x69],
+			"Hex encoding should be parsed for 好",
+		);
+
+		this.assertEquals(
+			j[\hexDigits].ascii[8..].asAscii,
+			"ipsum",
+			"Hex encoding should not affect ascii chars ipsum",
+		);
+	}
+
+	test_numbers {
+		var j = TestJSONlib.prLoadJsonFile("numbers.json");
+		this.assertEquals(j[\integer], 10, "Positive integer");
+		this.assertEquals(j[\negativeInteger], -1 * 10, "Negative integer");
+		this.assertEquals(j[\float], 10.0, "float");
+		this.assertEquals(j[\negativeFloat], -10.0, "negative float");
+		this.assertEquals(j[\bigE], 20000000000.0, "Big E writing");
+		this.assertEquals(j[\smallE], 20000000000.0, "small e writing");
+		this.assertEquals(j[\negativeExponent], 0.0000000002, "negative exponent");
+	}
+
+	test_jsonNull {
+		var p = TestJSONlib.prJsonFilePath("values.json");
+		var j = JSONlib.parseFile(p, toEvent: true);
+		this.assertEquals(j[\null].class, JSONlibNull, "As an Event can not store nil as value we implemented JSONlibNull");
+		j = JSONlib.parseFile(p, toEvent: false);
+		this.assertEquals(j["null"], nil, "the SC dict can store nil");
+	}
+}
