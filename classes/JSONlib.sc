@@ -4,18 +4,18 @@ JSONlibNull {}
 JSONlib {
 
 	*convertToJSON {|dict, customEncoder=nil, postWarnings=true|
-		if(dict.isKindOf(Dictionary).not, {
+		if(dict.isKindOf(Dictionary).not) {
 			Error("Can only convert a Dictonary/Event to JSON but received %".format(dict.class)).throw
-		});
+		};
 		customEncoder = customEncoder ? {};
-		^this.prConvertToJson(dict, postWarnings, customEncoder);
+		^this.prConvertToJson(dict, postWarnings, customEncoder)
 	}
 
 	*convertToSC {|string, convertDicts=true, postWarnings=true|
-		if(string.isKindOf(String).not, {
+		if(string.isKindOf(String).not) {
 			Error("Can only parse a String to JSON but received %".format(string.class)).throw
-		});
-		^this.prConvertToSC(string.parseJSON, convertDicts, postWarnings);
+		};
+		^this.prConvertToSC(string.parseJSON, convertDicts, postWarnings)
 	}
 
 	*prConvertToJson {|v, postWarnings=true, customEncoder|
@@ -39,18 +39,20 @@ JSONlib {
 		{ v.isKindOf(Dictionary) } {
 			array = v.asAssociations.collect { |x|
 				var key = x.key;
-				if((key.isKindOf(String)).not, {
+				if((key.isKindOf(String)).not) {
 					"Key % got transformed to a string".format(key).warn;
 					key = key.asString.quote
-				});
+				};
 				"%: %".format(key, this.prConvertToJson(x.value, postWarnings, customEncoder))
 			};
 			/*
 			this can be documented as I rarely come across people who use dictionaries and
 			is also optional depending on the parsing flags
 
+			if we want to make this a standard class, "I rarely come across people who …" is not admissible.
+
 			if(postWarnings and: { v.class !== Dictionary }) {
-				"JSON file format will not recover % class, but instead a Dictionary".format(v.class.name).warn
+			"JSON file format will not recover % class, but instead a Dictionary".format(v.class.name).warn
 			};
 			*/
 			"{ % }".format(array.join(", "))
