@@ -2,19 +2,18 @@ JSONlibNull {}
 
 
 JSONlib {
-	*dumps {|dict, customEncoder=nil, postWarnings=true|
+
+	*convertToJSON {|dict, customEncoder=nil, postWarnings=true|
 		if(dict.isKindOf(Dictionary).not, {
-			"Can only convert a Dictonary/Event to JSON but received %".format(dict.class).warn;
-			^"{ }";
+			Error("Can only convert a Dictonary/Event to JSON but received %".format(dict.class)).throw
 		});
 		customEncoder = customEncoder ? {};
 		^JSONlib.prConvertToJson(dict, postWarnings, customEncoder);
 	}
 
-	*parse {|string, convertDicts=true, postWarnings=true|
+	*convertToSC {|string, convertDicts=true, postWarnings=true|
 		if(string.isKindOf(String).not, {
-			"Can only parse a String to JSON but received %".format(string.class).warn;
-			^();
+			Error("Can only parse a String to JSON but received %".format(string.class)).throw
 		});
 		^JSONlib.prConvertToSC(string.parseJSON, convertDicts, postWarnings);
 	}
