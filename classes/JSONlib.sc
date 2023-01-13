@@ -8,20 +8,20 @@ JSONlib {
 			Error("Can only convert a Dictonary/Event to JSON but received %".format(dict.class)).throw
 		});
 		customEncoder = customEncoder ? {};
-		^JSONlib.prConvertToJson(dict, postWarnings, customEncoder);
+		^this.prConvertToJson(dict, postWarnings, customEncoder);
 	}
 
 	*convertToSC {|string, convertDicts=true, postWarnings=true|
 		if(string.isKindOf(String).not, {
 			Error("Can only parse a String to JSON but received %".format(string.class)).throw
 		});
-		^JSONlib.prConvertToSC(string.parseJSON, convertDicts, postWarnings);
+		^this.prConvertToSC(string.parseJSON, convertDicts, postWarnings);
 	}
 
 	*prConvertToJson {|v, postWarnings=true, customEncoder|
 		var array;
 		^case
-		{ v.isKindOf(Symbol) } { JSONlib.prConvertToJson(v.asString, postWarnings, customEncoder) }
+		{ v.isKindOf(Symbol) } { this.prConvertToJson(v.asString, postWarnings, customEncoder) }
 		{ (v == "null").or(v.class == JSONlibNull) } { "null" }
 		// sc closely implements the JSON string, see https://www.json.org/json-en.html
 		// but the post window parses \n as linebreak etc. which makes copying of the JSON from
@@ -30,7 +30,7 @@ JSONlib {
 		{ v.isNumber } { v.asCompileString }
 		{ v.isKindOf(Boolean) } { v.asBoolean }
 		{ v.isKindOf(SequenceableCollection) } {
-			array = v.collect { |x| JSONlib.prConvertToJson(x, postWarnings, customEncoder) };
+			array = v.collect { |x| this.prConvertToJson(x, postWarnings, customEncoder) };
 			if(postWarnings and: { v.class !== Array  }) {
 				"JSON file format will not recover % class, but instead an Array".format(v.class.name).warn
 			};
@@ -43,7 +43,7 @@ JSONlib {
 					"Key % got transformed to a string".format(key).warn;
 					key = key.asString.quote
 				});
-				"%: %".format(key, JSONlib.prConvertToJson(x.value, postWarnings, customEncoder))
+				"%: %".format(key, this.prConvertToJson(x.value, postWarnings, customEncoder))
 			};
 			/*
 			this can be documented as I rarely come across people who use dictionaries and
@@ -72,16 +72,16 @@ JSONlib {
 		{ v == "false" } { false }
 		// an event can not store nil as a value so we replace it with JSONNull
 		{ v == nil } { if(convertDicts, {JSONlibNull()}, {nil}) }
-		{ v.isArray } { v.collect { |x| JSONlib.prConvertToSC(x, convertDicts, postWarnings) } }
+		{ v.isArray } { v.collect { |x| this.prConvertToSC(x, convertDicts, postWarnings) } }
 		{ v.isKindOf(Dictionary) } {
 			if(convertDicts) {
 				res = Event.new;
 				v.pairsDo { |key, x|
-					res.put(key.asSymbol, JSONlib.prConvertToSC(x, convertDicts, postWarnings));
+					res.put(key.asSymbol, this.prConvertToSC(x, convertDicts, postWarnings));
 				};
 				res;
 			} {
-				v.collect { |x| JSONlib.prConvertToSC(x, convertDicts, postWarnings) }
+				v.collect { |x| this.prConvertToSC(x, convertDicts, postWarnings) }
 			}
 		}
 		{ v }
