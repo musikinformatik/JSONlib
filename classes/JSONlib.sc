@@ -11,12 +11,16 @@ JSONlib {
 		^JSONlib.prConvertToJson(dict, postWarnings, customEncoder);
 	}
 
-	*parse {|string, convertDicts=true, postWarnings=true|
+	*parse {|string, toEvent=true, postWarnings=true|
 		if(string.isKindOf(String).not, {
 			"Can only parse a String to JSON but received %".format(string.class).warn;
 			^();
 		});
-		^JSONlib.prConvertToSC(string.parseJSON, convertDicts, postWarnings);
+		^JSONlib.prConvertToSC(string.parseJSON, toEvent, postWarnings);
+	}
+
+	*parseFile {|filePath, toEvent=true, postWarnings=true|
+		^JSONlib.prConvertToSC(filePath.parseJSONFile, toEvent, postWarnings);
 	}
 
 	*prConvertToJson {|v, postWarnings=true, customEncoder|
@@ -62,7 +66,7 @@ JSONlib {
 		}
 	}
 
-	*prConvertToSC { |v, convertDicts, postWarnings|
+	*prConvertToSC { |v, toEvent, postWarnings|
 		var res;
 		^case
 		{ v.isString and: { v.every { |x| x.isDecDigit } } } { v.asInteger }
@@ -72,17 +76,17 @@ JSONlib {
 		{ v == "true" } { true }
 		{ v == "false" } { false }
 		// an event can not store nil as a value so we replace it with JSONNull
-		{ v == nil } { if(convertDicts, {JSONlibNull()}, {nil}) }
-		{ v.isArray } { v.collect { |x| JSONlib.prConvertToSC(x, convertDicts, postWarnings) } }
+		{ v == nil } { if(toEvent, {JSONlibNull()}, {nil}) }
+		{ v.isArray } { v.collect { |x| JSONlib.prConvertToSC(x, toEvent, postWarnings) } }
 		{ v.isKindOf(Dictionary) } {
-			if(convertDicts) {
+			if(toEvent) {
 				res = Event.new;
 				v.pairsDo { |key, x|
-					res.put(key.asSymbol, JSONlib.prConvertToSC(x, convertDicts, postWarnings));
+					res.put(key.asSymbol, JSONlib.prConvertToSC(x, toEvent, postWarnings));
 				};
 				res;
 			} {
-				v.collect { |x| JSONlib.prConvertToSC(x, convertDicts, postWarnings) }
+				v.collect { |x| JSONlib.prConvertToSC(x, toEvent, postWarnings) }
 			}
 		}
 		{ v }
