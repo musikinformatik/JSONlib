@@ -6,6 +6,6 @@
 
 + Dictionary {
 	asJson {
-		^JSONlib.dumps(this)
+		^JSONlib.convertToJSON(this)
 	}
 }
