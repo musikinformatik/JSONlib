@@ -22,7 +22,7 @@ JSONlib {
 		var array;
 		^case
 		{ v.isKindOf(Symbol) } { this.prConvertToJson(v.asString, postWarnings, customEncoder) }
-		{ (v == "null").or(v.class == JSONlibNull) } { "null" }
+		{ v == "null" or: { v.class == JSONlibNull } } { "null" }
 		// sc closely implements the JSON string, see https://www.json.org/json-en.html
 		// but the post window parses \n as linebreak etc. which makes copying of the JSON from
 		// the post window error prone
@@ -69,7 +69,7 @@ JSONlib {
 		{ v.isString and: { v.every { |x| x.isDecDigit } } } { v.asInteger }
 		// see https://www.json.org/json-en.html Number section and
 		// https://stackoverflow.com/a/6425559/3475778
-		{ v.isString and: "^[-]?(0|[1-9][0-9]*)(\\.[0-9]+)?([eE][+-]?[0-9]+)?$".matchRegexp(v.asString) } { v.asFloat }
+		{ v.isString and: { "^[-]?(0|[1-9][0-9]*)(\\.[0-9]+)?([eE][+-]?[0-9]+)?$".matchRegexp(v.asString) } } { v.asFloat }
 		{ v == "true" } { true }
 		{ v == "false" } { false }
 		// an event can not store nil as a value so we replace it with JSONNull
