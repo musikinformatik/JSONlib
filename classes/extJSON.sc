@@ -1,11 +1,11 @@
 + Collection {
-	asJson {
+	asJSON {
 		^JSONlib.convertToJSON(this);
 	}
 }
 
 + Dictionary {
-	asJson {
-		^JSONlib.convertToJSON(this)
+	asJSON {
+		^JSONlib.convertToJSON(this);
 	}
 }
