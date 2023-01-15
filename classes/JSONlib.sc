@@ -2,32 +2,32 @@ JSONlibNull {}
 
 
 JSONlib {
-	*dumps {|object, customEncoder=nil, postWarnings=false|
-		if(object.isKindOf(Dictionary).not.and((object.isKindOf(SequenceableCollection).not)), {
-			"Can only convert a Dictonary/Array to JSON but received %".format(object.class).warn;
-			^"{ }";
-		});
-		customEncoder = customEncoder ? {};
-		^JSONlib.prConvertToJson(object, postWarnings, customEncoder);
+
+	var <>postWarnings, <>convertDicts, customEncoder;
+
+	*new { |postWarnings = true, convertDicts=true, customEncoder|
+		^super.newCopyArgs(postWarnings, convertDicts, customEncoder)
 	}
 
-	*parse {|string, toEvent=true, postWarnings=true|
-		if(string.isKindOf(String).not, {
-			"Can only parse a String to JSON but received %".format(string.class).warn;
-			^();
-		});
-		^JSONlib.prConvertToSC(string.parseJSON, toEvent, postWarnings);
+	*convertToJSON {|dict, customEncoder=nil, postWarnings=true|
+		if(dict.isKindOf(Dictionary).not) {
+			Error("Can only convert a Dictonary/Event to JSON but received %".format(dict.class)).throw
+		};
+		^this.new(postWarnings, customEncoder: customEncoder).prConvertToJson(dict)
 	}
 
-	*parseFile {|filePath, toEvent=true, postWarnings=true|
-		^JSONlib.prConvertToSC(filePath.parseJSONFile, toEvent, postWarnings);
+	*convertToSC {|string, convertDicts=true, postWarnings=true|
+		if(string.isKindOf(String).not) {
+			Error("Can only parse a String to JSON but received %".format(string.class)).throw
+		};
+		^this.new(postWarnings, convertDicts: convertDicts).prConvertToSC(string.parseJSON)
 	}
 
-	*prConvertToJson {|v, postWarnings=true, customEncoder|
+	prConvertToJson {|v, postWarnings=true, customEncoder|
 		var array;
 		^case
-		{ v.isKindOf(Symbol) } { JSONlib.prConvertToJson(v.asString, postWarnings, customEncoder) }
-		{ (v == "null").or(v.class == Nil).or(v.class == JSONlibNull) } { "null" }
+		{ v.isKindOf(Symbol) } { this.prConvertToJson(v.asString) }
+		{ v == "null" or: { v.class == JSONlibNull } } { "null" }
 		// sc closely implements the JSON string, see https://www.json.org/json-en.html
 		// but the post window parses \n as linebreak etc. which makes copying of the JSON from
 		// the post window error prone
@@ -51,7 +51,7 @@ JSONlib {
 		}
 		{ v.isKindOf(Boolean) } { v.asBoolean }
 		{ v.isKindOf(SequenceableCollection) } {
-			array = v.collect { |x| JSONlib.prConvertToJson(x, postWarnings, customEncoder) };
+			array = v.collect { |x| this.prConvertToJson(x) };
 			if(postWarnings and: { v.class !== Array  }) {
 				"JSON file format will not recover % class, but instead an Array".format(v.class.name).warn
 			};
@@ -60,18 +60,20 @@ JSONlib {
 		{ v.isKindOf(Dictionary) } {
 			array = v.asAssociations.sort.collect { |x|
 				var key = x.key;
-				if((key.isKindOf(String)).not, {
+				if((key.isKindOf(String)).not) {
 					"Key % got transformed to a string".format(key).warn;
-					key = key.asString;
-				});
-				"%: %".format(key.quote, JSONlib.prConvertToJson(x.value, postWarnings, customEncoder))
+					key = key.asString.quote
+				};
+				"%: %".format(key, this.prConvertToJson(x.value))
 			};
 			/*
 			this can be documented as I rarely come across people who use dictionaries and
 			is also optional depending on the parsing flags
 
+			if we want to make this a standard class, "I rarely come across people who …" is not admissible.
+
 			if(postWarnings and: { v.class !== Dictionary }) {
-				"JSON file format will not recover % class, but instead a Dictionary".format(v.class.name).warn
+			"JSON file format will not recover % class, but instead a Dictionary".format(v.class.name).warn
 			};
 			*/
 			"{ % }".format(array.join(", "))
@@ -82,27 +84,27 @@ JSONlib {
 		}
 	}
 
-	*prConvertToSC { |v, toEvent, postWarnings|
+	prConvertToSC { |v|
 		var res;
 		^case
 		{ v.isString and: { v.every { |x| x.isDecDigit } } } { v.asInteger }
 		// see https://www.json.org/json-en.html Number section and
 		// https://stackoverflow.com/a/6425559/3475778
-		{ v.isString and: "^[-]?(0|[1-9][0-9]*)(\\.[0-9]+)?([eE][+-]?[0-9]+)?$".matchRegexp(v.asString) } { v.asFloat }
+		{ v.isString and: { "^[-]?(0|[1-9][0-9]*)(\\.[0-9]+)?([eE][+-]?[0-9]+)?$".matchRegexp(v.asString) } } { v.asFloat }
 		{ v == "true" } { true }
 		{ v == "false" } { false }
 		// an event can not store nil as a value so we replace it with JSONNull
-		{ v == nil } { if(toEvent, {JSONlibNull()}, {nil}) }
-		{ v.isArray } { v.collect { |x| JSONlib.prConvertToSC(x, toEvent, postWarnings) } }
+		{ v == nil } { if(convertDicts, {JSONlibNull()}, {nil}) }
+		{ v.isArray } { v.collect { |x| this.prConvertToSC(x) } }
 		{ v.isKindOf(Dictionary) } {
 			if(toEvent) {
 				res = Event.new;
 				v.pairsDo { |key, x|
-					res.put(key.asSymbol, JSONlib.prConvertToSC(x, toEvent, postWarnings));
+					res.put(key.asSymbol, this.prConvertToSC(x));
 				};
 				res;
 			} {
-				v.collect { |x| JSONlib.prConvertToSC(x, toEvent, postWarnings) }
+				v.collect { |x| this.prConvertToSC(x) }
 			}
 		}
 		{ v }
