@@ -67,9 +67,9 @@ JSONlib {
 				if((key.isKindOf(String)).not) {
 					if(key.isKindOf(Symbol).not) {
 						"Key % of type % got transformed to a string".format(key, key.class).warn;
-				};
+					};
 					key = key.asString;
-			};
+				};
 				"%: %".format(key.quote, this.prConvertToJson(x.value))
 			};
 			"{ % }".format(array.join(", "))
@@ -277,7 +277,49 @@ TestJSONlib : UnitTest {
 		);
 	}
 
+	// invalid encoding tests
+	test_numberAsKey {
+		var o = (
+			1: 2
+		);
+		// should print a warning (how to test this?)
+		var j = JSONlib.convertToJSON(o);
+		this.assertEquals(
+			j,
+			"{ \"1\": 2 }",
+			"numbers as keys will be implicitly converted to strings"
+		);
 	}
+
+	test_functionAsValue {
+		var o = (
+			\func: {|x| "hello".postln}
+		);
+		// should print a warning (how to test this?)
+		var j = JSONlib.convertToJSON(o);
+		this.assertEquals(
+			j,
+			// needs escaping within function
+			"{ \"func\": \"{|x| \\\"hello\\\".postln}\" }",
+			"Use compile string as fallback for non-JSON objects which needs escaping",
+		);
+	}
+
+	test_functionsAsValueRecursive {
+		// same as above but now the json of a json as a value
+		// primarly used to validate escaping of strings
+		var o = (
+			\func: {"hello".postln},
+		);
+		var j = JSONlib.convertToJSON((\json: JSONlib.convertToJSON(o)));
+		this.assertEquals(
+			j,
+			// sorry...
+			"{ \"json\": \"{ \\\"func\\\": \\\"{\\\\\\\"hello\\\\\\\".postln}\\\" }\" }",
+			"when used recursively we must escape all strings properly"
+		);
+	}
+
 
 	// decoding tests - taken from json.org
 	// we only test for valid json
