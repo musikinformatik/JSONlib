@@ -66,16 +66,8 @@ JSONlib {
 				};
 					key = key.asString;
 			};
-			/*
-			this can be documented as I rarely come across people who use dictionaries and
-			is also optional depending on the parsing flags
-
-			if we want to make this a standard class, "I rarely come across people who …" is not admissible.
-
-			if(postWarnings and: { v.class !== Dictionary }) {
-			"JSON file format will not recover % class, but instead a Dictionary".format(v.class.name).warn
+				"%: %".format(key.quote, this.prConvertToJson(x.value))
 			};
-			*/
 			"{ % }".format(array.join(", "))
 		}
 		{
