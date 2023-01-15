@@ -3,10 +3,10 @@ JSONlibNull {}
 
 JSONlib {
 
-	var <>postWarnings, <>convertDicts, <>customEncoder;
+	var <>postWarnings, <>useEvent, <>customEncoder;
 
-	*new { |postWarnings = true, convertDicts=true, customEncoder|
-		^super.newCopyArgs(postWarnings, convertDicts, customEncoder)
+	*new { |postWarnings = true, useEvent=true, customEncoder|
+		^super.newCopyArgs(postWarnings, useEvent, customEncoder)
 	}
 
 	*convertToJSON {|object, customEncoder=nil, postWarnings=true|
@@ -16,11 +16,15 @@ JSONlib {
 		^this.new(postWarnings, customEncoder: customEncoder).prConvertToJson(object);
 	}
 
-	*convertToSC {|string, convertDicts=true, postWarnings=true|
+	*convertToSC {|string, useEvent=true, postWarnings=true|
 		if(string.isKindOf(String).not) {
 			Error("Can only parse a String to JSON but received %".format(string.class)).throw
 		};
-		^this.new(postWarnings, convertDicts: convertDicts).prConvertToSC(string.parseJSON)
+		^this.new(postWarnings, useEvent: useEvent).prConvertToSC(string.parseJSON)
+	}
+
+	*parseFile {|filePath, useEvent=true, postWarnings=true|
+		^this.new(postWarnings, useEvent: useEvent).prConvertToSC(filePath.parseJSONFile);
 	}
 
 	prConvertToJson {|v, postWarnings=true, customEncoder|
@@ -86,10 +90,10 @@ JSONlib {
 		{ v == "true" } { true }
 		{ v == "false" } { false }
 		// an event can not store nil as a value so we replace it with JSONNull
-		{ v == nil } { if(convertDicts, {JSONlibNull()}, {nil}) }
+		{ v == nil } { if(useEvent, {JSONlibNull()}, {nil}) }
 		{ v.isArray } { v.collect { |x| this.prConvertToSC(x) } }
 		{ v.isKindOf(Dictionary) } {
-			if(toEvent) {
+			if(useEvent) {
 				res = Event.new;
 				v.pairsDo { |key, x|
 					res.put(key.asSymbol, this.prConvertToSC(x));
