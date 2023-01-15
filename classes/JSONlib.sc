@@ -72,7 +72,7 @@ JSONlib {
 		}
 		{
 			if(postWarnings) { "JSON file format will not recover % class, but instead a compile string".format(v.class.name).warn };
-			v.asCompileString.quote
+			this.prConvertToJson(v.asCompileString);
 		}
 	}
 
