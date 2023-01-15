@@ -1,6 +1,6 @@
 + Collection {
 	asJson {
-		^this.asDict.asJson
+		^JSONlib.convertToJSON(this);
 	}
 }
 
