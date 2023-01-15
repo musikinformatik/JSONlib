@@ -61,10 +61,10 @@ JSONlib {
 			array = v.asAssociations.sort.collect { |x|
 				var key = x.key;
 				if((key.isKindOf(String)).not) {
-					"Key % got transformed to a string".format(key).warn;
-					key = key.asString.quote
+					if(key.isKindOf(Symbol).not) {
+						"Key % of type % got transformed to a string".format(key, key.class).warn;
 				};
-				"%: %".format(key, this.prConvertToJson(x.value))
+					key = key.asString;
 			};
 			/*
 			this can be documented as I rarely come across people who use dictionaries and
