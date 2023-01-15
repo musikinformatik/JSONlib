@@ -27,7 +27,7 @@ JSONlib {
 		^this.new(postWarnings, useEvent: useEvent).prConvertToSC(filePath.parseJSONFile);
 	}
 
-	prConvertToJson {|v, postWarnings=true, customEncoder|
+	prConvertToJson {|v|
 		var array;
 		^case
 		{ v.isKindOf(Symbol) } { this.prConvertToJson(v.asString) }
