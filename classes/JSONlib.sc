@@ -348,9 +348,25 @@ TestJSONlib : UnitTest {
 
 	test_jsonNullDecode {
 		var p = TestJSONlib.prJsonFilePath("values.json");
-		var j = JSONlib.parseFile(p, toEvent: true);
+		var j = JSONlib.parseFile(p, useEvent: true);
 		this.assertEquals(j[\null].class, JSONlibNull, "As an Event can not store nil as value we implemented JSONlibNull");
-		j = JSONlib.parseFile(p, toEvent: false);
+		j = JSONlib.parseFile(p, useEvent: false);
 		this.assertEquals(j["null"], nil, "the SC dict can store nil");
+	}
+
+	test_jsonEncodeDict {
+		var t = "{ \"hello\": \"world\" }";
+		var j = JSONlib.convertToSC(t, useEvent: false);
+		this.assertEquals(j.class, Dictionary, "Type should be Dictionary if not Event");
+		this.assertEquals(j["hello"], "world", "Dictonaries use Strings as keys");
+		this.assertEquals(j[\hello], nil, "Dictionaries use Strings as keys");
+	}
+
+	test_jsonEncodeEvent {
+		var t = "{ \"hello\": \"world\" }";
+		var j = JSONlib.convertToSC(t, useEvent: true);
+		this.assertEquals(j.class, Event, "Type should be Event as default");
+		this.assertEquals(j["hello"], nil, "Events use symbols as keys");
+		this.assertEquals(j[\hello], "world", "Events use symbols as keys");
 	}
 }
