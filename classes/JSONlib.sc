@@ -27,7 +27,7 @@ JSONlib {
 		var array;
 		^case
 		{ v.isKindOf(Symbol) } { this.prConvertToJson(v.asString) }
-		{ v == "null" or: { v.class == JSONlibNull } } { "null" }
+		{ v == "null" or: { v.class == JSONlibNull } or: { v == nil } } { "null" }
 		// sc closely implements the JSON string, see https://www.json.org/json-en.html
 		// but the post window parses \n as linebreak etc. which makes copying of the JSON from
 		// the post window error prone
