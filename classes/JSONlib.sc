@@ -411,4 +411,34 @@ TestJSONlib : UnitTest {
 		this.assertEquals(j["hello"], nil, "Events use symbols as keys");
 		this.assertEquals(j[\hello], "world", "Events use symbols as keys");
 	}
+
+	// test external methods
+	test_arrayMethod {
+		var j = [0, nil, "20"].asJSON();
+		this.assertEquals(
+			j,
+			"[ 0, null, \"20\" ]",
+			"Test array method"
+		)
+	}
+
+	test_dictMethod {
+		var d = Dictionary().put("some", 20);
+		var j = d.asJSON();
+		this.assertEquals(
+			j,
+			"{ \"some\": 20 }",
+			"Test external method on a Dictionary"
+		);
+	}
+
+	test_eventMethod {
+		var e = (\some: 30);
+		var j = e.asJSON();
+		this.assertEquals(
+			j,
+			"{ \"some\": 30 }",
+			"Test external method on an Event"
+		);
+	}
 }
