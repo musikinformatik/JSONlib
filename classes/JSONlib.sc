@@ -3,7 +3,7 @@ JSONlibNull {}
 
 JSONlib {
 
-	var <>postWarnings, <>convertDicts, customEncoder;
+	var <>postWarnings, <>convertDicts, <>customEncoder;
 
 	*new { |postWarnings = true, convertDicts=true, customEncoder|
 		^super.newCopyArgs(postWarnings, convertDicts, customEncoder)
