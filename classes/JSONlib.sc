@@ -9,11 +9,11 @@ JSONlib {
 		^super.newCopyArgs(postWarnings, convertDicts, customEncoder)
 	}
 
-	*convertToJSON {|dict, customEncoder=nil, postWarnings=true|
-		if(dict.isKindOf(Dictionary).not) {
-			Error("Can only convert a Dictonary/Event to JSON but received %".format(dict.class)).throw
+	*convertToJSON {|object, customEncoder=nil, postWarnings=true|
+		if((object.isKindOf(Dictionary) or: (object.isKindOf(SequenceableCollection))).not) {
+			Error("Can only convert a Dictonary/Event/Array to JSON but received %".format(object.class)).throw
 		};
-		^this.new(postWarnings, customEncoder: customEncoder).prConvertToJson(dict)
+		^this.new(postWarnings, customEncoder: customEncoder).prConvertToJson(object);
 	}
 
 	*convertToSC {|string, convertDicts=true, postWarnings=true|
