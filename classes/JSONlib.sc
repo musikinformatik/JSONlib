@@ -121,19 +121,19 @@ TestJSONlib : UnitTest {
 	// encoding tests
 	test_objectEncode {
 		var o = (\foo: (\bar: "baz"));
-		var j = JSONlib.dumps(o);
+		var j = JSONlib.convertToJSON(o);
 		this.assertEquals(j, "{ \"foo\": { \"bar\": \"baz\" } }");
 	}
 
 	test_objectStringKeysEncode {
 		var o = ("foo": "bar");
-		var j = JSONlib.dumps(o);
+		var j = JSONlib.convertToJSON(o);
 		this.assertEquals(j, "{ \"foo\": \"bar\" }", "use strings as keys");
 	}
 
 	test_arrayEncode {
 		var o = [20, 30, 40];
-		var j = JSONlib.dumps(o);
+		var j = JSONlib.convertToJSON(o);
 		this.assertEquals(j, "[ 20, 30, 40 ]");
 	}
 
@@ -145,10 +145,10 @@ TestJSONlib : UnitTest {
 			\array: [1,2,3],
 			\true: true,
 			\false: false,
-			\null: JSONlibNull,
+			\null: JSONlibNull(),
 		);
-		var j = JSONlib.dumps(o);
-		this.assertEquals(j, "{ \"array\": [ 1, 2, 3 ], \"false\": false, \"null\": \"JSONlibNull\", \"number\": 10, \"object\": { \"foo\": \"bar\" }, \"string\": \"string\", \"true\": true }");
+		var j = JSONlib.convertToJSON(o);
+		this.assertEquals(j, "{ \"array\": [ 1, 2, 3 ], \"false\": false, \"null\": null, \"number\": 10, \"object\": { \"foo\": \"bar\" }, \"string\": \"string\", \"true\": true }");
 	}
 
 	test_stringsEncode {
@@ -166,55 +166,55 @@ TestJSONlib : UnitTest {
 		);
 
 		this.assertEquals(
-			JSONlib.dumps((\text: "lorem ipsum")),
+			JSONlib.convertToJSON((\text: "lorem ipsum")),
 			"{ \"text\": \"lorem ipsum\" }",
 			"normal text"
 		);
 
 		this.assertEquals(
-			JSONlib.dumps((\text: "lorem\"ipsum")),
+			JSONlib.convertToJSON((\text: "lorem\"ipsum")),
 			"{ \"text\": \"lorem\\\"ipsum\" }",
 			"quatition mark"
 		);
 
 		this.assertEquals(
-			JSONlib.dumps((\text: "lorem\\ipsum")),
+			JSONlib.convertToJSON((\text: "lorem\\ipsum")),
 			"{ \"text\": \"lorem\\\\ipsum\" }",
 			"reverse solidus"
 		);
 
 		this.assertEquals(
-			JSONlib.dumps((\text: "lorem/ipsum")),
+			JSONlib.convertToJSON((\text: "lorem/ipsum")),
 			"{ \"text\": \"lorem\\/ipsum\" }",
 			"solidus"
 		);
 
 		this.assertEquals(
-			JSONlib.dumps((\text: "lorem%ipsum".format(0x08.asAscii))),
+			JSONlib.convertToJSON((\text: "lorem%ipsum".format(0x08.asAscii))),
 			"{ \"text\": \"lorem\\bipsum\" }",
 			"backspace"
 		);
 
 		this.assertEquals(
-			JSONlib.dumps((\text: "lorem%ipsum".format(0x0c.asAscii))),
+			JSONlib.convertToJSON((\text: "lorem%ipsum".format(0x0c.asAscii))),
 			"{ \"text\": \"lorem\\fipsum\" }",
 			"formfeed"
 		);
 
 		this.assertEquals(
-			JSONlib.dumps((\text: "lorem\nipsum")),
+			JSONlib.convertToJSON((\text: "lorem\nipsum")),
 			"{ \"text\": \"lorem\\nipsum\" }",
 			"linefeed"
 		);
 
 		this.assertEquals(
-			JSONlib.dumps((\text: "lorem\ripsum")),
+			JSONlib.convertToJSON((\text: "lorem\ripsum")),
 			"{ \"text\": \"lorem\\ripsum\" }",
 			"carriage return"
 		);
 
 		this.assertEquals(
-			JSONlib.dumps((\text: "lorem\tipsum")),
+			JSONlib.convertToJSON((\text: "lorem\tipsum")),
 			"{ \"text\": \"lorem\\tipsum\" }",
 			"horizontal tab"
 		);
@@ -237,7 +237,7 @@ TestJSONlib : UnitTest {
 			["hex", 0x10, 16],
 		].do({|v|
 			var o = (v[0]: v[1]).postln;
-			var j = JSONlib.dumps(o);
+			var j = JSONlib.convertToJSON(o);
 			this.assertEquals(
 				j,
 				"{ \"%\": % }".format(v[0], v[2]),
@@ -250,7 +250,7 @@ TestJSONlib : UnitTest {
 		var o = (
 			null: JSONlibNull()
 		);
-		var j = JSONlib.dumps(o);
+		var j = JSONlib.convertToJSON(o);
 		this.assertEquals(
 			j,
 			"{ \"null\": null }",
@@ -259,7 +259,7 @@ TestJSONlib : UnitTest {
 
 		o = Dictionary();
 		o.put("null", JSONlibNull());
-		j = JSONlib.dumps(o);
+		j = JSONlib.convertToJSON(o);
 		this.assertEquals(
 			j,
 			"{ \"null\": null }",
@@ -269,12 +269,13 @@ TestJSONlib : UnitTest {
 		// .parseJson allows us to store nil in a dict
 		// which is not possible otherwise
 		o = "{\"null\": null}".parseJSON;
-		j = JSONlib.dumps(o);
+		j = JSONlib.convertToJSON(o);
 		this.assertEquals(
 			j,
 			"{ \"null\": null }",
 			"nil should be represented as null"
 		);
+	}
 
 	}
 
