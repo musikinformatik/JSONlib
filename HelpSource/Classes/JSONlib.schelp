@@ -1,0 +1,30 @@
+TITLE:: JSONlib
+summary:: A JSON en- and decoder
+categories::Files,Utilities
+
+DESCRIPTION::
+Encode SuperCollider Objects to the JSON format and decode them from the JSON format.
+
+
+CLASSMETHODS::
+
+
+
+METHOD::convertToJSON
+
+
+
+METHOD::convertToSC
+
+
+
+
+INSTANCEMETHODS::
+
+PRIVATE:: prConvertToJson, prConvertToSC
+
+
+EXAMPLES::
+
+
+
