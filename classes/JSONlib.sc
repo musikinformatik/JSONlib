@@ -28,7 +28,8 @@ JSONlib {
 		var array;
 		^case
 		{ v.isKindOf(Symbol) } { this.prConvertToJson(v.asString) }
-		{ v == "null" or: { v.value == nil } or: { v == nil } } { "null" }
+		// only check value if it is a ref
+		{ (v.isKindOf(Ref)).if({v.value==nil}, {false}) or: { v == nil } } { "null" }
 		// sc closely implements the JSON string, see https://www.json.org/json-en.html
 		// but the post window parses \n as linebreak etc. which makes copying of the JSON from
 		// the post window error prone
@@ -279,6 +280,7 @@ TestJSONlib : UnitTest {
 		);
 	}
 
+	// encoding of non-json values
 	test_functionAsValue {
 		var o = (
 			\func: {|x| "hello".postln}
@@ -308,6 +310,43 @@ TestJSONlib : UnitTest {
 		);
 	}
 
+	// additional ref/nil test
+	test_anotherFunctionAsValue {
+		// primary purpose to verify null check
+		var o = (
+			\func: { |x| x !? (x+1) },
+		);
+		var j = JSONlib.convertToJSON(o);
+		this.assertEquals(
+			j,
+			"{ \"func\": \"{ |x| x !? (x+1) }\" }",
+			".value should not get called on a non-ref",
+		);
+	}
+
+	test_ref {
+		var o = (
+			\ref: `42,
+		);
+		var j = JSONlib.convertToJSON(o);
+		this.assertEquals(
+			j,
+			"{ \"ref\": \"`(42)\" }",
+			"Non-nil refs should be encoded as compile strings",
+		);
+	}
+
+	test_stringNull {
+		var o = (
+			\null: "null",
+		);
+		var j = JSONlib.convertToJSON(o);
+		this.assertEquals(
+			j,
+			"{ \"null\": \"null\" }",
+			"A \"null\" string should be represented as a string",
+		)
+	}
 
 	// decoding tests - taken from json.org
 	// we only test for valid json
