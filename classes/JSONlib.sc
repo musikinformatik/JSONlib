@@ -1,6 +1,3 @@
-JSONlibNull {}
-
-
 JSONlib {
 
 	var <>postWarnings, <>useEvent, <>customEncoder;
@@ -31,7 +28,7 @@ JSONlib {
 		var array;
 		^case
 		{ v.isKindOf(Symbol) } { this.prConvertToJson(v.asString) }
-		{ v == "null" or: { v.class == JSONlibNull } or: { v == nil } } { "null" }
+		{ v == "null" or: { v.value == nil } or: { v == nil } } { "null" }
 		// sc closely implements the JSON string, see https://www.json.org/json-en.html
 		// but the post window parses \n as linebreak etc. which makes copying of the JSON from
 		// the post window error prone
@@ -89,8 +86,8 @@ JSONlib {
 		{ v.isString and: { "^[-]?(0|[1-9][0-9]*)(\\.[0-9]+)?([eE][+-]?[0-9]+)?$".matchRegexp(v.asString) } } { v.asFloat }
 		{ v == "true" } { true }
 		{ v == "false" } { false }
-		// an event can not store nil as a value so we replace it with JSONNull
-		{ v == nil } { if(useEvent, {JSONlibNull()}, {nil}) }
+		// an event can not store nil as a value so wrap it in a Ref
+		{ v == nil } { Ref(nil) }
 		{ v.isArray } { v.collect { |x| this.prConvertToSC(x) } }
 		{ v.isKindOf(Dictionary) } {
 			if(useEvent) {
@@ -145,7 +142,7 @@ TestJSONlib : UnitTest {
 			\array: [1,2,3],
 			\true: true,
 			\false: false,
-			\null: JSONlibNull(),
+			\null: `nil,
 		);
 		var j = JSONlib.convertToJSON(o);
 		this.assertEquals(j, "{ \"array\": [ 1, 2, 3 ], \"false\": false, \"null\": null, \"number\": 10, \"object\": { \"foo\": \"bar\" }, \"string\": \"string\", \"true\": true }");
@@ -248,22 +245,13 @@ TestJSONlib : UnitTest {
 
 	test_nullEncode {
 		var o = (
-			null: JSONlibNull()
+			null: `nil
 		);
 		var j = JSONlib.convertToJSON(o);
 		this.assertEquals(
 			j,
 			"{ \"null\": null }",
-			"Use JSONlibNull to represent null in event";
-		);
-
-		o = Dictionary();
-		o.put("null", JSONlibNull());
-		j = JSONlib.convertToJSON(o);
-		this.assertEquals(
-			j,
-			"{ \"null\": null }",
-			"Use JSONlibNull to represent null in event";
+			"Use Ref(nil) to represent null in event";
 		);
 
 		// .parseJson allows us to store nil in a dict
@@ -341,7 +329,8 @@ TestJSONlib : UnitTest {
 		this.assertEquals(j[\array], [1, 2, 3], "Value can be an array");
 		this.assertEquals(j[\true], true, "Value can be true");
 		this.assertEquals(j[\false], false, "Value can be false");
-		this.assertEquals(j[\null].class, JSONlibNull, "Value can be null");
+		this.assertEquals(j[\null].class, Ref, "Null needs to be wrapped in a Ref");
+		this.assertEquals(j[\null].value, nil, "Unwrapping Ref(nil) should be nil");
 	}
 
 	test_stringsDecode {
@@ -391,9 +380,12 @@ TestJSONlib : UnitTest {
 	test_jsonNullDecode {
 		var p = TestJSONlib.prJsonFilePath("values.json");
 		var j = JSONlib.parseFile(p, useEvent: true);
-		this.assertEquals(j[\null].class, JSONlibNull, "As an Event can not store nil as value we implemented JSONlibNull");
+		this.assert(j.keys.asArray.includes(\null), "Null ref value needs to have a key in event");
+		this.assertEquals(j[\null].value, nil, "As an Event can not store nil we wrap it in a Ref");
 		j = JSONlib.parseFile(p, useEvent: false);
-		this.assertEquals(j["null"], nil, "the SC dict can store nil");
+		j.keys.asArray.postln;
+		this.assert(j.keys.asArray.any({|x| x == "null"}), "Null ref value needs to have a string key in dictionary");
+		this.assertEquals(j["null"].value, nil, "As a Dictionary can not store nil we wrap it in a Ref");
 	}
 
 	test_jsonEncodeDict {
