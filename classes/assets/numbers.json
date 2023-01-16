@@ -1,0 +1,9 @@
+{
+    "integer": 10,
+    "negativeInteger": -10,
+    "float": 10.0,
+    "negativeFloat": -10.0,
+    "bigE": 2E10,
+    "smallE": 2e10,
+    "negativeExponent": 2e-10
+}

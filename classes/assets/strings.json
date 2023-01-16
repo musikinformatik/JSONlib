@@ -1,0 +1,12 @@
+{
+    "text": "lorem ipsum",
+    "quotationMark": "lorem\"ipsum",
+    "reverseSolidus": "lorem\\ipsum",
+    "solidus": "lorem\/ipsum",
+    "backspace": "lorem\bipsum",
+    "formfeed": "lorem\fipsum",
+    "linefeed": "lorem\nipsum",
+    "carriageReturn": "lorem\ripsum",
+    "horizontalTab": "lorem\tipsum",
+    "hexDigits": "lorem\u597Dipsum"
+}

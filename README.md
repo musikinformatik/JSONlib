@@ -12,6 +12,14 @@ which this Quark implements, building on top of the existing implementation.
 There also exists a [json](https://github.com/supercollider-quarks/json) Quark which also adds a wrapper for [sccode.org](https://sccode.org) but lacks a recursive encoding of objects.
 The goal of `JSONlib` is to simply provide a full implementation of the JSON standard in sclang and nothing beyond it.
 
+## Development
+
+Run tests via
+
+```supercollider
+TestJSONlib.run;
+```
+
 ## License
 
 GPL-2.0
