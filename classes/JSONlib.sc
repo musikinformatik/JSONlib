@@ -336,7 +336,7 @@ TestJSONlib : UnitTest {
 	test_valuesDecode {
 		var j = TestJSONlib.prLoadJsonFile("values.json");
 		this.assertEquals(j[\string], "string", "Value can be strings");
-		this.assertEquals(j[\number], 10, "Value can be integer numebrs");
+		this.assertEquals(j[\number], 10, "Value can be integer numbers");
 		this.assertEquals(j[\object][\foo], "bar", "Values can be objects");
 		this.assertEquals(j[\array], [1, 2, 3], "Value can be an array");
 		this.assertEquals(j[\true], true, "Value can be true");
