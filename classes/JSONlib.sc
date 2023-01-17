@@ -29,7 +29,7 @@ JSONlib {
 		^case
 		{ v.isKindOf(Symbol) } { this.prConvertToJson(v.asString) }
 		// only check value if it is a ref
-		{ (v.isKindOf(Ref)).if({v.value==nil}, {false}) or: { v == nil } } { "null" }
+		{ v.isNil or: { v.isKindOf(Ref) and: { v.value.isNil } } } { "null" }
 		// sc closely implements the JSON string, see https://www.json.org/json-en.html
 		// but the post window parses \n as linebreak etc. which makes copying of the JSON from
 		// the post window error prone
