@@ -6,12 +6,7 @@ JSONlib {
 	var <>customDecoder;
 
 	*new { |postWarnings = true, useEvent=true, customEncoder=nil, customDecoder=nil|
-		^super.newCopyArgs(
-			postWarnings,
-			useEvent,
-			customEncoder,
-			customDecoder,
-		)
+		^super.newCopyArgs(postWarnings, useEvent, customEncoder, customDecoder)
 	}
 
 	*convertToJSON {|object, customEncoder=nil, postWarnings=true|
@@ -57,7 +52,8 @@ JSONlib {
 		// sc closely implements the JSON string, see https://www.json.org/json-en.html
 		// but the post window parses \n as linebreak etc. which makes copying of the JSON from
 		// the post window error prone
-		{ v.isString } { v
+		{ v.isString } {
+			v
 			.replace("\\", "\\\\") // reverse solidus
 			.replace("/", "\\/") // solidus
 			.replace($", "\\\"") // quoatition mark
@@ -71,8 +67,8 @@ JSONlib {
 		}
 		{ v.isNumber } {
 			case
-			{v==inf} { "inf".quote }
-			{v==inf.neg} { "-inf".quote }
+			{ v == inf } { "inf".quote }
+			{ v == inf.neg } { "-inf".quote }
 			{v.asCompileString};
 		}
 		{ v.isKindOf(Boolean) } { v.asBoolean }
@@ -98,7 +94,7 @@ JSONlib {
 		}
 		{
 			if(postWarnings) { "JSON file format will not recover % class, but instead a compile string".format(v.class.name).warn };
-			this.prConvertToJson(v.asCompileString);
+			this.prConvertToJson(v.asCompileString)
 		}
 	}
 
