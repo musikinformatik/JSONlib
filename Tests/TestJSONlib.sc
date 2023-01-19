@@ -279,7 +279,7 @@ TestJSONlib : UnitTest {
 
 		// sc can not compare utf-8 chares so we make some extra steps
 		this.assertEquals(
-			j[\hexDigits].ascii[0..4].asAscii,
+			j[\hexDigits].ascii[0..4].collect(_.asAscii),
 			"lorem",
 			"Hex encoding should not affect ascii chars lorem",
 		);
@@ -292,7 +292,7 @@ TestJSONlib : UnitTest {
 		);
 
 		this.assertEquals(
-			j[\hexDigits].ascii[8..].asAscii,
+			j[\hexDigits].ascii[8..].collect(_.asAscii),
 			"ipsum",
 			"Hex encoding should not affect ascii chars ipsum",
 		);
