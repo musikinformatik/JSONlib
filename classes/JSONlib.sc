@@ -11,14 +11,14 @@ JSONlib {
 			useEvent,
 			customEncoder,
 			customDecoder,
-		);
+		)
 	}
 
 	*convertToJSON {|object, customEncoder=nil, postWarnings=true|
 		if((object.isKindOf(Dictionary) or: (object.isKindOf(SequenceableCollection))).not) {
 			Error("Can only convert a Dictonary/Event/Array to JSON but received %".format(object.class)).throw
 		};
-		^this.new(postWarnings, customEncoder: customEncoder).prConvertToJson(object);
+		^this.new(postWarnings, customEncoder: customEncoder).prConvertToJson(object)
 	}
 
 	*convertToSC {|string, customDecoder=nil, useEvent=true, postWarnings=true|
@@ -37,17 +37,19 @@ JSONlib {
 			postWarnings,
 			customDecoder: customDecoder,
 			useEvent: useEvent,
-		).prConvertToSC(filePath.parseJSONFile);
+		).prConvertToSC(filePath.parseJSONFile)
 	}
 
 	prConvertToJson {|v|
 		var array;
+
 		if(customEncoder.notNil) {
 			var val = customEncoder.value(v);
 			if(val.notNil) {
-				^val;
-			};
+				^val
+			}
 		};
+
 		^case
 		{ v.isKindOf(Symbol) } { this.prConvertToJson(v.asString) }
 		// only check value if it is a ref
@@ -105,9 +107,10 @@ JSONlib {
 		if(customDecoder.notNil) {
 			var val = customDecoder.value(v);
 			if(val.notNil) {
-				^val;
-			};
+				^val
+			}
 		};
+
 		^case
 		{ v.isString and: { v.every { |x| x.isDecDigit } } } { v.asInteger }
 		// see https://www.json.org/json-en.html Number section and
