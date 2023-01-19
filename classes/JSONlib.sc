@@ -3,10 +3,18 @@ JSONlibNull {}
 
 JSONlib {
 
-	var <>postWarnings, <>useEvent, <>customEncoder;
+	var <>postWarnings;
+	var <>useEvent;
+	var <>customEncoder;
+	var <>customDecoder;
 
-	*new { |postWarnings = true, useEvent=true, customEncoder|
-		^super.newCopyArgs(postWarnings, useEvent, customEncoder)
+	*new { |postWarnings = true, useEvent=true, customEncoder=nil, customDecoder=nil|
+		^super.newCopyArgs(
+			postWarnings,
+			useEvent,
+			customEncoder,
+			customDecoder,
+		);
 	}
 
 	*convertToJSON {|object, customEncoder=nil, postWarnings=true|
@@ -16,19 +24,33 @@ JSONlib {
 		^this.new(postWarnings, customEncoder: customEncoder).prConvertToJson(object);
 	}
 
-	*convertToSC {|string, useEvent=true, postWarnings=true|
+	*convertToSC {|string, customDecoder=nil, useEvent=true, postWarnings=true|
 		if(string.isKindOf(String).not) {
 			Error("Can only parse a String to JSON but received %".format(string.class)).throw
 		};
-		^this.new(postWarnings, useEvent: useEvent).prConvertToSC(string.parseJSON)
+		^this.new(
+			postWarnings,
+			customDecoder: customDecoder,
+			useEvent: useEvent
+		).prConvertToSC(string.parseJSON)
 	}
 
-	*parseFile {|filePath, useEvent=true, postWarnings=true|
-		^this.new(postWarnings, useEvent: useEvent).prConvertToSC(filePath.parseJSONFile);
+	*parseFile {|filePath, customDecoder=nil, useEvent=true, postWarnings=true|
+		^this.new(
+			postWarnings,
+			customDecoder: customDecoder,
+			useEvent: useEvent,
+		).prConvertToSC(filePath.parseJSONFile);
 	}
 
 	prConvertToJson {|v|
 		var array;
+		if(customEncoder.notNil) {
+			var val = customEncoder.value(v);
+			if(val.notNil) {
+				^val;
+			};
+		};
 		^case
 		{ v.isKindOf(Symbol) } { this.prConvertToJson(v.asString) }
 		{ v == "null" or: { v.class == JSONlibNull } or: { v == nil } } { "null" }
@@ -82,6 +104,12 @@ JSONlib {
 
 	prConvertToSC { |v|
 		var res;
+		if(customDecoder.notNil) {
+			var val = customDecoder.value(v);
+			if(val.notNil) {
+				^val;
+			};
+		};
 		^case
 		{ v.isString and: { v.every { |x| x.isDecDigit } } } { v.asInteger }
 		// see https://www.json.org/json-en.html Number section and
@@ -410,6 +438,59 @@ TestJSONlib : UnitTest {
 		this.assertEquals(j.class, Event, "Type should be Event as default");
 		this.assertEquals(j["hello"], nil, "Events use symbols as keys");
 		this.assertEquals(j[\hello], "world", "Events use symbols as keys");
+	}
+
+	// test custom decoder/encoders
+	test_customEncoderFunc {
+		var f = {|x|
+			if(x.isFunction) {
+				"--func%".format(x.cs).quote;
+			}
+		};
+		var o = (
+			\f: {|x| x},
+		);
+		var j = JSONlib.convertToJSON(
+			object: o,
+			customEncoder: f
+		);
+		this.assertEquals(
+			j,
+			"{ \"f\": \"--func{|x| x}\" }",
+			"Custom encoder values should be used for translating values to JSON",
+		);
+		this.assertEquals(
+			JSONlib.convertToJSON((\o: 42), f),
+			"{ \"o\": 42 }",
+			"Custom encoder should not affect other values",
+		);
+	}
+
+	test_customDecoderFunc {
+		var f = {|x|
+			if(x.isString) {
+				if(x.beginsWith("--func")) {
+					// somehow we need to run this twice
+					x["--func".size()..].compile().();
+				};
+			};
+		};
+		var t = "{ \"f\": \"--func{|x| 42;}\" }";
+		var o = JSONlib.convertToSC(
+			t,
+			customDecoder: f
+		);
+		o.postln;
+		this.assertEquals(
+			o[\f].(),
+			42,
+			"Custom decoder should be used for translating JSON values to SC objects"
+		);
+		this.assertEquals(
+			JSONlib.convertToSC("{ \"f\": 20 }", f)[\f],
+			20,
+			"Custom encoder should not affect other values",
+		);
 	}
 
 	// test external methods
