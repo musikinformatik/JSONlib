@@ -1,11 +1,12 @@
 TestJSONlib : UnitTest {
+
 	// util
-	*prJsonFilePath {|fileName|
-		^this.class.filenameSymbol.asString.dirname +/+ "assets" +/+ fileName;
+	getPathFor {|fileName|
+		^this.class.filenameSymbol.asString.dirname +/+ "assets" +/+ fileName
 	}
 
-	*prLoadJsonFile {|fileName|
-		^JSONlib.parseFile(TestJSONlib.prJsonFilePath(fileName));
+	parseJsonFile {|fileName|
+		^JSONlib.parseFile(this.getPathFor(fileName))
 	}
 
 	// encoding tests
@@ -243,17 +244,17 @@ TestJSONlib : UnitTest {
 	// decoding tests - taken from json.org
 	// we only test for valid json
 	test_objectDecode {
-		var j = TestJSONlib.prLoadJsonFile("object.json");
+		var j = this.parseJsonFile("object.json");
 		this.assertEquals(j[\foo][\bar], "baz", "Parse nested objects");
 	}
 
 	test_arrayDecode {
-		var j = TestJSONlib.prLoadJsonFile("array.json");
+		var j = this.parseJsonFile("array.json");
 		this.assertEquals(j, [20 , 30, 40], "JSON can contain also array as root");
 	}
 
 	test_valuesDecode {
-		var j = TestJSONlib.prLoadJsonFile("values.json");
+		var j = this.parseJsonFile("values.json");
 		this.assertEquals(j[\string], "string", "Value can be strings");
 		this.assertEquals(j[\number], 10, "Value can be integer numbers");
 		this.assertEquals(j[\object][\foo], "bar", "Values can be objects");
@@ -265,7 +266,7 @@ TestJSONlib : UnitTest {
 	}
 
 	test_stringsDecode {
-		var j = TestJSONlib.prLoadJsonFile("strings.json");
+		var j = this.parseJsonFile("strings.json");
 		this.assertEquals(j[\text], "lorem ipsum", "Standard text should be reproduced");
 		this.assertEquals(j[\quotationMark], "lorem\"ipsum", "Quotation needs to be escaped");
 		this.assertEquals(j[\reverseSolidus], "lorem\\ipsum", "Reverse Solidus needs to be escaped");
@@ -298,7 +299,7 @@ TestJSONlib : UnitTest {
 	}
 
 	test_numbersDecode {
-		var j = TestJSONlib.prLoadJsonFile("numbers.json");
+		var j = this.parseJsonFile("numbers.json");
 		this.assertEquals(j[\integer], 10, "Positive integer");
 		this.assertEquals(j[\negativeInteger], -1 * 10, "Negative integer");
 		this.assertEquals(j[\float], 10.0, "float");
@@ -309,7 +310,7 @@ TestJSONlib : UnitTest {
 	}
 
 	test_jsonNullDecode {
-		var p = TestJSONlib.prJsonFilePath("values.json");
+		var p = this.getPathFor("values.json");
 		var j = JSONlib.parseFile(p, useEvent: true);
 		this.assert(j.keys.asArray.includes(\null), "Null ref value needs to have a key in event");
 		this.assertEquals(j[\null].value, nil, "As an Event can not store nil we wrap it in a Ref");
