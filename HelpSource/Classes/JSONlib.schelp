@@ -51,12 +51,12 @@ LIST::
 ## does not respect the types of a JSON but instead uses the type of String for every value
 ::
 
-An encoder emphasis::simply:: needs to translate the SuperCollider scalars to the set of JSON scalars.
-As there are far more SuperCollider scalars than JSON scalars we rely on some implicit and explicit conversions.
+An encoder emphasis::simply:: needs to translate the SuperCollider data types to the set of JSON data types.
+As there are far more SuperCollider data types than JSON data types we rely on some implicit and explicit conversions.
 Consult the source code on what kind of implicit conversions are made.
 These defaults can be overwritten and extended by providing a  code::customEncoder:: or code::customDecoder:: (see link::Classes/JSONlib#*new::).
 
-The type converion issue is a bit more difficult as it is not possible for us to recover the original types from the JSON explicitly.
+The type conversion issue is a bit more difficult as it is not possible for us to recover the original types from the JSON explicitly.
 Was code::"42":: always a string or was it an link::Classes/Integer:: once that got converted by link::Classes/String#-parseJSON:: from an Integer to a link::Classes/String::?
 - so we decided to use implicit casting if the string matches a JSON representation other than String.
 The only exception here is code::null::, see below.
@@ -78,15 +78,15 @@ SUBSECTION::Representing null in SuperCollider
 
 code::null:: is a special value in JSON which emphasis::represents the intentional absence of any object value.:: footnote::https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/null::.
 
-SuperColliders equivalent would be link::Classes/Nil:: which gets implemented as an object via code::nil::.
-Yet it is not as easy as that because we can not store code::nil:: as a value in a link::Classes/Dictionary:: as this is the sclang syntax to delete a key-value pair within a dictionary.
+SuperColliders equivalent would be object code::nil::, check link::Classes/Nil:: for more information.
+Yet it is not as easy as that because we can not store code::nil:: as a value in a link::Classes/Dictionary:: as this is the sclang syntax to delete a key-value pair within a dictionary because nil represents the return value for an empty slot and code::put(key, nil):: is equivalent to removing the object at code::key::.
 
 code::
 e = (\foo: nil, \bar: 42);
 // -> ( 'bar': 42 )
 ::
 
-To overcome this constrain we wrap code::nil:: into a link::Classes/Ref:: (shortcut is using the backtick, so code::`nil::) anytime we encounter a code::null:: value in the JSON string.
+To overcome this constraint we wrap code::nil:: into a link::Classes/Ref:: (shortcut is using the backtick, so code::`nil::) wherever we encounter a code::null:: value in the JSON string.
 
 code::
 e = (\foo: `nil, \bar: 42);
@@ -99,7 +99,7 @@ e[\foo];
 e[\foo].value
 // -> nil
 
-// you can also use .value on other scalars
+// you can also use .value on other data types
 e[\bar].value
 
 // generates a null value in our JSON
@@ -124,12 +124,13 @@ CLASSMETHODS::
 METHOD:: new
 
 argument:: postWarnings
-As JSON can only represent a specific set of scalars. If code::true:: a warning will be posted if an implicit conversion to a link::Classes/Object#-asCompileString:: occurs as a fallback.
+If code::true:: a warning will be posted if an implicit conversion to a link::Classes/Object#-asCompileString:: occurs as a fallback because JSON has only a limited set of data types.
 argument:: useEvent
 If code::true:: it will return a link::Classes/Event:: instead of a link::Classes/Dictionary:: which is what link::Classes/String#-parseJSON:: uses
 argument:: customEncoder
-Using a custom encoder allows to specify the encoding an abitrary object into its JSON representation.
+Using a custom encoder allows to specify the encoding of an abitrary object into its JSON representation.
 To introduce a custom encoding (e.g. link::Classes/Point:: or link::Classes/Function::) simply provide a function which accepts the object as a first argument and return a non-code::nil:: value if it a custom representation should be used.
+Otherwise, it will be encoded as usual.
 
 STRONG::Example::
 
@@ -187,7 +188,7 @@ Encodes a given JSON string to a link::Classes/Event::, link::Classes/Dictionary
 
 argument:: string
 JSON string one wants to parse.
-Have in mind that any code::":: needs to be escaped with code::\"::, so at least every key needs this.
+Keep in mind that any code::":: needs to be escaped with code::\"::, so at least every key needs this.
 If you have copied a JSON from elsewhere either save it as a file and use link::#*parseFile:: or use the console of your browser by simply wrapping the JSON into backticks (e.g. code::`{"my": "json"}`::).
 The returned string will contain the all necessary string escapes for SuperCollider."
 argument:: customDecoder
@@ -382,7 +383,7 @@ a = JSONlib.convertToJSON(x, customEncoder: {|x|
 )
 // -> { "data": 42, "myFunc": --func{|x| x**2} }
 
-// decode JSON to SC with our custod decoder
+// decode JSON to SC with our custom decoder
 // which re-constructs the function
 (
 b = JSONlib.convertToSC(a, 	customDecoder: {|x|
