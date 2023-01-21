@@ -2,7 +2,7 @@ TestJSONlib : UnitTest {
 
 	// util
 	getPathFor {|fileName|
-		^this.class.filenameSymbol.asString.dirname.dirname +/+ "assets" +/+ fileName
+		^this.class.filenameSymbol.asString.dirname +/+ "assets" +/+ fileName
 	}
 
 	parseJsonFile {|fileName|
