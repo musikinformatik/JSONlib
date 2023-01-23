@@ -26,7 +26,12 @@ code::
 // escaping of quotes is necessary
 j = "{\"hello\": 42}";
 JSONlib.convertToSC(j);
-// -> -> ( 'hello': 42 )
+// -> ( 'hello': 42 )
+
+// to avoid the need for escaping strings, you can also use a symbol:
+j = '{"hello": 42}';
+JSONlib.convertToSC(j);
+// -> ( 'hello': 42 )
 ::
 
 Also see link::#*new:: and the link::#examples::.
