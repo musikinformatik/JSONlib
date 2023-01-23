@@ -58,7 +58,7 @@ These defaults can be overwritten and extended by providing a  code::customEncod
 
 The type conversion issue is a bit more difficult as it is not possible for us to recover the original types from the JSON explicitly.
 Was code::"42":: always a string or was it an link::Classes/Integer:: once that got converted by link::Classes/String#-parseJSON:: from an Integer to a link::Classes/String::?
-- so we decided to use implicit casting if the string matches a JSON representation other than String.
+- so we decided to use implicit assignment of an appropriate class (also known as type casting in other programming languages) if the string matches a JSON representation other than String.
 The only exception here is code::null::, see below.
 
 If you do not want to make use of the implicit casting simply use the built in link::Classes/String#-parseJSON::.
@@ -140,7 +140,7 @@ code::
 (
 f = {|object|
 	if(object.class == Point, {
-		[object.x, object.y];
+		[object.x, object.y]
 	});
 };
 )
