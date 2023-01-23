@@ -1,30 +1,431 @@
 TITLE:: JSONlib
-summary:: A JSON en- and decoder
-categories::Files,Utilities
+SUMMARY::A JSON en- and decoder
+CATEGORIES::Files,Utilities,External Control
+RELATED::Classes/String#YAML and JSON parsing,Classes/Event,Classes/Dictionary,Guides/OSC_communication
 
 DESCRIPTION::
-Encode SuperCollider Objects to the JSON format and decode them from the JSON format.
 
+Encode SuperCollider objects to the JSON format and decode them from the JSON format.
+
+SUBSECTION::Quickstart
+
+Encoding
+
+code::
+e = (\my: "mapping");
+e.asJSON;
+// -> { "my": "mapping" }
+
+// or use the lib directly
+JSONlib.convertToJSON(e);
+::
+
+Decoding
+
+code::
+// escaping of quotes is necessary
+j = "{\"hello\": 42}";
+JSONlib.convertToSC(j);
+// -> -> ( 'hello': 42 )
+::
+
+Also see link::#*new:: and the link::#examples::.
+
+SUBSECTION::What is JSON
+
+EMPHASIS::JSON (JavaScript Object Notation) is a lightweight data-interchange format. It is easy for humans to read and write. It is easy for machines to parse and generate.:: footnote::https://www.json.org/::
+
+JSON is a common exchange format in the internet as Browsers provide a JavaScript runtime and JSON is the native exchange format for JavaScript objects.
+This led to wide adaption as it is a fixed standard with a variety of use cases.
+The network communication abilties of SuperCollider are restricted to link::Guides/OSC_communication:: which can only transfer link::Classes/Array:: but no nested objects, but by using a JSON string we can transfer nested key-value pairs (see link::#Transfer nested objects via OSC::).
+
+For more information consult https://www.json.org/
+
+SUBSECTION::Yet another JSON parser?
+
+But isn't there alreday a built in method called link::Classes/String#-parseJSON::?
+Yes, but link::Classes/String#-parseJSON:: implementation
+
+LIST::
+## lacks an encoder, so the conversion of e.g. a link::Classes/Dictionary:: to a JSON string representation
+## does not respect the types of a JSON but instead uses the type of String for every value
+::
+
+An encoder emphasis::simply:: needs to translate the SuperCollider data types to the set of JSON data types.
+As there are far more SuperCollider data types than JSON data types we rely on some implicit and explicit conversions.
+Consult the source code on what kind of implicit conversions are made.
+These defaults can be overwritten and extended by providing a  code::customEncoder:: or code::customDecoder:: (see link::Classes/JSONlib#*new::).
+
+The type conversion issue is a bit more difficult as it is not possible for us to recover the original types from the JSON explicitly.
+Was code::"42":: always a string or was it an link::Classes/Integer:: once that got converted by link::Classes/String#-parseJSON:: from an Integer to a link::Classes/String::?
+- so we decided to use implicit assignment of an appropriate class (also known as type casting in other programming languages) if the string matches a JSON representation other than String.
+The only exception here is code::null::, see below.
+
+If you do not want to make use of the implicit casting simply use the built in link::Classes/String#-parseJSON::.
+
+Consider the JSON code::{"number": 42}::
+
+code::
+j = "{\"number\": 42\}";
+j.parseJSON()["number"].class;
+// -> String
+JSONlib.convertToSC(j)[\number].class;
+// -> Integer
+::
+
+
+SUBSECTION::Representing null in SuperCollider
+
+code::null:: is a special value in JSON which emphasis::represents the intentional absence of any object value.:: footnote::https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/null::.
+
+SuperColliders equivalent would be object code::nil::, check link::Classes/Nil:: for more information.
+Yet it is not as easy as that because we can not store code::nil:: as a value in a link::Classes/Dictionary:: as this is the sclang syntax to delete a key-value pair within a dictionary because nil represents the return value for an empty slot and code::put(key, nil):: is equivalent to removing the object at code::key::.
+
+code::
+e = (\foo: nil, \bar: 42);
+// -> ( 'bar': 42 )
+::
+
+To overcome this constraint we wrap code::nil:: into a link::Classes/Ref:: (shortcut is using the backtick, so code::`nil::) wherever we encounter a code::null:: value in the JSON string.
+
+code::
+e = (\foo: `nil, \bar: 42);
+// -> ( 'foo': `(nil), 'bar': 42 )
+
+e[\foo];
+// -> `(nil)
+
+// use .value to unpack the reference
+e[\foo].value
+// -> nil
+
+// you can also use .value on other data types
+e[\bar].value
+
+// generates a null value in our JSON
+e.asJSON
+// -> { "bar": 42, "foo": null }
+::
+
+The same applies if we decode code::null:: from JSON string
+
+code::
+j = "{\"foo\": null, \"bar\": 42}";
+e = JSONlib.convertToSC(j);
+// -> ( 'bar': 42, 'foo': `(nil) )
+e[\foo].value;
+// -> nil
+::
+
+See https://github.com/musikinformatik/JSONlib/issues/7 and https://github.com/musikinformatik/JSONlib/issues/5 for discussion.
 
 CLASSMETHODS::
 
+METHOD:: new
+
+argument:: postWarnings
+If code::true:: a warning will be posted if an implicit conversion to a link::Classes/Object#-asCompileString:: occurs as a fallback because JSON has only a limited set of data types.
+argument:: useEvent
+If code::true:: it will return a link::Classes/Event:: instead of a link::Classes/Dictionary:: which is what link::Classes/String#-parseJSON:: uses
+argument:: customEncoder
+Using a custom encoder allows to specify the encoding of an abitrary object into its JSON representation.
+To introduce a custom encoding (e.g. link::Classes/Point:: or link::Classes/Function::) simply provide a function which accepts the object as a first argument and return a non-code::nil:: value if it a custom representation should be used.
+Otherwise, it will be encoded as usual.
+
+STRONG::Example::
+
+A custom encoder which converts a link::Classes/Point:: into an array for the JSON representation.
+
+code::
+(
+f = {|object|
+	if(object.class == Point, {
+		[object.x, object.y]
+	});
+};
+)
+e = (\myPoint: Point(x: 42, y: 9));
+JSONlib.convertToJSON(e, customEncoder: f);
+// -> { "myPoint": [ 42, 9 ] }
+::
+
+warning::
+You need to take care of any escaping on link::Classes/String:: or any recursion due to using nested objects or arrays.
+::
+
+argument:: customDecoder
+Allows to specify the decoding of a string by providing a function which takes as an argument every value within the return object of link::Classes/String#-parseJSON:: which includes link::Classes/String::, link::Classes/Array::, link::Classes/Dictionary:: and link::Classes/Nil::.
+If this function returns a non-code::nil:: value we will use this in the returned sclang object.
+
+STRONG::Example::
+
+A (naive) custom decoder which converts the string code::"point#x#y":: to a link::Classes/Point::.
+Consider using regular expressions via e.g. link::Classes/String#-matchRegexp:: for more reliable implementation.
+
+code::
+(
+f = {|object|
+	if(object.class == String) {
+		if(object.beginsWith("point#")) {
+			// 0 is "point"
+			var x = object.split($#)[1];
+			var y = object.split($#)[2];
+			Point(x, y);
+		};
+	};
+};
+)
+j = "{\"myPoint\": \"point#42#9\"}";
+e = JSONlib.convertToSC(j, customDecoder: f);
+// -> ( 'myPoint': Point( 42, 9 ) )
+e[\myPoint].x
+// -> 42
+::
 
 
-METHOD::convertToJSON
+METHOD:: convertToSC
+Encodes a given JSON string to a link::Classes/Event::, link::Classes/Dictionary:: or link::Classes/Array::.
+
+argument:: string
+JSON string one wants to parse.
+Keep in mind that any code::":: needs to be escaped with code::\"::, so at least every key needs this.
+If you have copied a JSON from elsewhere either save it as a file and use link::#*parseFile:: or use the console of your browser by simply wrapping the JSON into backticks (e.g. code::`{"my": "json"}`::).
+The returned string will contain the all necessary string escapes for SuperCollider."
+argument:: customDecoder
+See link::#*new::
+argument:: useEvent
+See link::#*new::
+argument:: postWarnings
+See link::#*new::
+
+METHOD:: parseFile
+Parses a code::.json:: file in its SuperCollider object representation via link::#*convertToSC::
+argument:: filePath
+Path to the JSON file.
+argument:: customDecoder
+See link::#*new::
+argument:: useEvent
+See link::#*new::
+argument:: postWarnings
+See link::#*new::
 
 
-
-METHOD::convertToSC
-
-
+METHOD:: convertToJSON
+Decodes a link::Classes/Event::, link::Classes/Dictionary:: or link::Classes/Array:: into its JSON string representation.
+argument:: object
+The object one wants a JSON representation of.
+argument:: customEncoder
+See link::#*new::
+argument:: postWarnings
+See link::#*new::
 
 
 INSTANCEMETHODS::
 
-PRIVATE:: prConvertToJson, prConvertToSC
+PRIVATE:: prConvertToSC
+
+METHOD:: postWarnings
+
+See link::#*new::
+
+PRIVATE:: prConvertToJson
+
+METHOD:: customEncoder
+
+See link::#*new::
+
+METHOD:: useEvent
+
+See link::#*new::
+
+METHOD:: customDecoder
+
+See link::#*new::
 
 
 EXAMPLES::
 
+SUBSECTION::Convert an Event to a JSON string
 
+code::
+// create a nested event
+(
+e = (
+	\hello: 42,
+	\world: (
+		\of: "nested",
+		\objects: [
+			1,
+			true,
+			false,
+		]
+	)
+);
+)
 
+// get JSON represenatiotn
+j = e.asJSON;
+// -> { "hello": 42, "world": { "objects": [ 1, true, false ], "of": "nested" } }
+
+// also possible to use JSONlib
+j = JSONlib.convertToJSON(e);
+::
+
+SUBSECTION::Convert a Dictionary to a JSON string
+
+code::
+d = Dictionary().put(\foo, 42);
+
+j = d.asJSON;
+// -> { "foo": 42 }
+
+// also possible to use JSONlib directly
+j = JSONlib.convertToJSON(d);
+::
+
+SUBSECTION::Convert a JSON string to an Event
+
+See link::#*convertToSC:: on advice how to handle escaping of JSON strings.
+
+code::
+j = "{\"my\": 42}";
+
+// as event
+e = JSONlib.convertToSC(j);
+// -> ( 'foo': 42 )
+
+// access values via symbols
+e[\foo];
+
+// as dictionary
+d = JSONlib.convertToSC(j, useEvent: false);
+// -> Dictionary[ (foo -> 42) ]
+
+// access values via strings
+d["foo"];
+// -> 42
+::
+
+SUBSECTION::Save to file
+
+code::
+e = (\something: "new");
+
+// convert to JSON string
+j = JSONlib.convertToJSON(e);
+
+// save JSON string on disk as .json file
+(
+f = File("~/foo.json".standardizePath, "w");
+f.write(j);
+f.close;
+)
+
+// JSON string is now written to ~/foo.json
+::
+
+See link::Classes/File:: for further details.
+
+SUBSECTION::Using null
+
+See also link::#Representing null in SuperCollider:: and link::Classes/Ref::
+
+STRONG::Encoding::
+
+code::
+// wrap nil in a Ref (using `) to keep it as a value in an event
+e = (\nothing: `nil);
+// -> ( 'nothing': `(nil) )
+
+JSONlib.convertToJSON(e);
+// -> { "nothing": null }
+
+// using nil directly does NOT work, see
+e = (\nothing: nil);
+// -> (  )
+::
+
+STRONG::Decoding::
+
+Consider the JSON code::{"nothing": null}::
+
+code::
+j = "{\"nothing\": null}";
+e = JSONlib.convertToSC(j);
+// -> ( 'nothing': `(nil) )
+
+// accessing nothing returns only a ref
+e[\nothing];
+// -> `(nil)
+
+// unwrap it via .value
+e[\nothing].value;
+// -> nil
+::
+
+SUBSECTION::Use custom en/decoders to store functions
+
+WARNING::Executing arbitrary functions from JSON files can be a security risk. Trust your sources or verify the content before executing any functions.::
+
+Useful if you want to exchange functions and data via network (see below)
+
+code::
+// create event with function
+x = (\myFunc: {|x| x**2}, \data: 42);
+
+// encode it to JSON
+(
+a = JSONlib.convertToJSON(x, customEncoder: {|x|
+	if(x.class==Function, {
+		"--func%".format(x.asCompileString).quote;
+	});
+});
+)
+// -> { "data": 42, "myFunc": --func{|x| x**2} }
+
+// decode JSON to SC with our custom decoder
+// which re-constructs the function
+(
+b = JSONlib.convertToSC(a, 	customDecoder: {|x|
+	if(x.class==String) {
+		if(x.beginsWith("--func")) {
+			x["--func".size()..].compile().();
+		}
+	}
+});
+)
+// -> ( 'myFunc': a Function, 'data': 42 )
+
+b[\myFunc].(4)
+// -> 16.0
+::
+
+SUBSECTION::Transfer nested objects via OSC
+
+JSON allows to distribute and receive nested objects via OSC by distributing it as a link::Classes/String:: in an OSC message.
+
+code::
+// create event
+e = (\hello: (\foo: 42));
+
+// create local listener which converts a JSON string to an SC object
+(
+OSCdef(\myJSONparser, func: {|m|
+	// received strings are symbols, so we need to cast them to strings
+	"Received %".format(JSONlib.convertToSC(m[1].asString)).postln;
+}, path: "/myAddress", recvPort: 57120);
+)
+
+// send nested event as JSON
+(
+NetAddr(hostname: "127.0.0.1", port: 57120).sendMsg(
+	"/myAddress",
+	JSONlib.convertToJSON(e),
+);
+)
+
+// Received ( 'hello': ( 'foo': 42 ) )
+
+// clear OSC listener
+OSCdef.clear;
+::
