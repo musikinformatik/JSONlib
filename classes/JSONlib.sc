@@ -16,15 +16,19 @@ JSONlib {
 		^this.new(postWarnings, customEncoder: customEncoder).prConvertToJson(object)
 	}
 
-	*convertToSC {|string, customDecoder=nil, useEvent=true, postWarnings=true|
-		if(string.isKindOf(String).not) {
-			Error("Can only parse a String to JSON but received %".format(string.class)).throw
+	*convertToSC {|json, customDecoder=nil, useEvent=true, postWarnings=true|
+		if(json.isKindOf(Symbol)) {
+			json = json.asString;
+		};
+
+		if(json.isKindOf(String).not) {
+			Error("Can only parse a String to JSON but received %".format(json.class)).throw
 		};
 		^this.new(
 			postWarnings,
 			customDecoder: customDecoder,
 			useEvent: useEvent
-		).prConvertToSC(string.parseJSON)
+		).prConvertToSC(json.parseJSON)
 	}
 
 	*parseFile {|filePath, customDecoder=nil, useEvent=true, postWarnings=true|

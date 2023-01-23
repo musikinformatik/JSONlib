@@ -186,9 +186,9 @@ e[\myPoint].x
 METHOD:: convertToSC
 Encodes a given JSON string to a link::Classes/Event::, link::Classes/Dictionary:: or link::Classes/Array::.
 
-argument:: string
-JSON string one wants to parse.
-Keep in mind that any code::":: needs to be escaped with code::\"::, so at least every key needs this.
+argument:: json
+JSON link::Classes/String:: or link::Classes/Symbol:: one wants to parse.
+Keep in mind that when using a String any code::":: needs to be escaped with code::\":: (so at least every key needs this) and on a Symbol code::':: needs to be escaped with code::\'::.
 If you have copied a JSON from elsewhere either save it as a file and use link::#*parseFile:: or use the console of your browser by simply wrapping the JSON into backticks (e.g. code::`{"my": "json"}`::).
 The returned string will contain the all necessary string escapes for SuperCollider."
 argument:: customDecoder
