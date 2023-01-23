@@ -6,19 +6,14 @@ JSONlib {
 	var <>customDecoder;
 
 	*new { |postWarnings = true, useEvent=true, customEncoder=nil, customDecoder=nil|
-		^super.newCopyArgs(
-			postWarnings,
-			useEvent,
-			customEncoder,
-			customDecoder,
-		);
+		^super.newCopyArgs(postWarnings, useEvent, customEncoder, customDecoder)
 	}
 
 	*convertToJSON {|object, customEncoder=nil, postWarnings=true|
 		if((object.isKindOf(Dictionary) or: (object.isKindOf(SequenceableCollection))).not) {
 			Error("Can only convert a Dictonary/Event/Array to JSON but received %".format(object.class)).throw
 		};
-		^this.new(postWarnings, customEncoder: customEncoder).prConvertToJson(object);
+		^this.new(postWarnings, customEncoder: customEncoder).prConvertToJson(object)
 	}
 
 	*convertToSC {|string, customDecoder=nil, useEvent=true, postWarnings=true|
@@ -37,17 +32,19 @@ JSONlib {
 			postWarnings,
 			customDecoder: customDecoder,
 			useEvent: useEvent,
-		).prConvertToSC(filePath.parseJSONFile);
+		).prConvertToSC(filePath.parseJSONFile)
 	}
 
 	prConvertToJson {|v|
 		var array;
+
 		if(customEncoder.notNil) {
 			var val = customEncoder.value(v);
 			if(val.notNil) {
-				^val;
-			};
+				^val
+			}
 		};
+
 		^case
 		{ v.isKindOf(Symbol) } { this.prConvertToJson(v.asString) }
 		// only check value if it is a ref
@@ -55,7 +52,8 @@ JSONlib {
 		// sc closely implements the JSON string, see https://www.json.org/json-en.html
 		// but the post window parses \n as linebreak etc. which makes copying of the JSON from
 		// the post window error prone
-		{ v.isString } { v
+		{ v.isString } {
+			v
 			.replace("\\", "\\\\") // reverse solidus
 			.replace("/", "\\/") // solidus
 			.replace($", "\\\"") // quoatition mark
@@ -69,8 +67,8 @@ JSONlib {
 		}
 		{ v.isNumber } {
 			case
-			{v==inf} { "inf".quote }
-			{v==inf.neg} { "-inf".quote }
+			{ v == inf } { "inf".quote }
+			{ v == inf.neg } { "-inf".quote }
 			{v.asCompileString};
 		}
 		{ v.isKindOf(Boolean) } { v.asBoolean }
@@ -96,7 +94,7 @@ JSONlib {
 		}
 		{
 			if(postWarnings) { "JSON file format will not recover % class, but instead a compile string".format(v.class.name).warn };
-			this.prConvertToJson(v.asCompileString);
+			this.prConvertToJson(v.asCompileString)
 		}
 	}
 
@@ -105,9 +103,10 @@ JSONlib {
 		if(customDecoder.notNil) {
 			var val = customDecoder.value(v);
 			if(val.notNil) {
-				^val;
-			};
+				^val
+			}
 		};
+
 		^case
 		{ v.isString and: { v.every { |x| x.isDecDigit } } } { v.asInteger }
 		// see https://www.json.org/json-en.html Number section and
