@@ -295,14 +295,14 @@ e = JSONlib.convertToSC(j);
 // -> ( 'foo': 42 )
 
 // access values via symbols
-e[\foo];
+e[\my];
 
 // as dictionary
 d = JSONlib.convertToSC(j, useEvent: false);
 // -> Dictionary[ (foo -> 42) ]
 
 // access values via strings
-d["foo"];
+d["my"];
 // -> 42
 ::
 
