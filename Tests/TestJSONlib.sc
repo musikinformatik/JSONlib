@@ -412,6 +412,16 @@ TestJSONlib : UnitTest {
 	}
 
 
+	test_jsonSymbolAsString {
+		var j = '{"hello": 42}';
+		var e = JSONlib.convertToSC(j);
+		this.assertEquals(
+			e[\hello],
+			42,
+			"JSONlib should also accept Symbols beneath Strings",
+		);
+	}
+
 	// private implementation
 	// util
 

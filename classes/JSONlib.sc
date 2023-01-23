@@ -17,6 +17,10 @@ JSONlib {
 	}
 
 	*convertToSC {|string, customDecoder=nil, useEvent=true, postWarnings=true|
+		if(string.isKindOf(Symbol)) {
+			string = string.asString;
+		};
+
 		if(string.isKindOf(String).not) {
 			Error("Can only parse a String to JSON but received %".format(string.class)).throw
 		};
