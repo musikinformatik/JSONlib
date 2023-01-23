@@ -37,7 +37,7 @@ EMPHASIS::JSON (JavaScript Object Notation) is a lightweight data-interchange fo
 
 JSON is a common exchange format in the internet as Browsers provide a JavaScript runtime and JSON is the native exchange format for JavaScript objects.
 This led to wide adaption as it is a fixed standard with a variety of use cases.
-The network communication abilties of SuperCollider are restricted to link::Guides/OSC_communication:: which can only transfer link::Classes/Array:: but no nested objects, but by using a JSON string we can transfer nested key-value pairs (see link::#Transfer nested objects via OSC::).
+The network communication abilties of SuperCollider are restricted to link::Guides/OSC_communication:: which can only transfer link::Classes/Array::s but no nested dictionaries. But by using a JSON string we can transfer nested key-value pairs (see link::#Transfer nested objects via OSC::).
 
 For more information consult https://www.json.org/
 
@@ -67,7 +67,7 @@ Consider the JSON code::{"number": 42}::
 
 code::
 j = "{\"number\": 42\}";
-j.parseJSON()["number"].class;
+j.parseJSON["number"].class;
 // -> String
 JSONlib.convertToSC(j)[\number].class;
 // -> Integer
