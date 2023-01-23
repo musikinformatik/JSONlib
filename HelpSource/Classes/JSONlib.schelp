@@ -28,7 +28,8 @@ j = "{\"hello\": 42}";
 JSONlib.convertToSC(j);
 // -> ( 'hello': 42 )
 
-// to avoid the need for escaping strings, you can also use a symbol:
+// to avoid the need for escaping strings, you can also use a symbol.
+// (note that you still need to escape ' if they are in your json)
 j = '{"hello": 42}';
 JSONlib.convertToSC(j);
 // -> ( 'hello': 42 )
