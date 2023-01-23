@@ -62,7 +62,7 @@ d["hello"].class
 // -> String
 ```
 
-#### Encode an Event as Json
+#### Encode an Event as JSON
 
 ```supercollider
 // create an event
