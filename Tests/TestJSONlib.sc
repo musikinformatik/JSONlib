@@ -418,7 +418,7 @@ TestJSONlib : UnitTest {
 		this.assertEquals(
 			e[\hello],
 			42,
-			"JSONlib should also accept Symbols beneath Strings",
+			"convertToSC needs to accept Symbols as well",
 		);
 	}
 

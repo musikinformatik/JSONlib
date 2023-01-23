@@ -31,7 +31,7 @@ HelpBrowser.openHelpFor("Classes/JSONlib");
 
 #### Parse a JSON
 
-Lets say we have a JSON with an integer as a value
+Let's say we have a JSON with an integer as a value
 
 ```json
 {
