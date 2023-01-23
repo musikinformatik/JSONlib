@@ -31,7 +31,7 @@ HelpBrowser.openHelpFor("Classes/JSONlib");
 
 #### Parse a JSON
 
-Lets parse the JSON which has an integer as a value
+Lets say we have a JSON with an integer as a value
 
 ```json
 {
@@ -39,10 +39,11 @@ Lets parse the JSON which has an integer as a value
 }
 ```
 
-In SuperCollider you need to escape the quotation marks. 
+which we want to parse in sclang.
 
 ```supercollider
-j = "{\"hello\": 42}";
+// use Symbol instead of String to get rid of escaping quotation marks
+j = '{"hello": 42}';
 
 // turn this into an Event
 d = JSONlib.convertToSC(j);
