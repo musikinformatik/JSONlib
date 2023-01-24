@@ -73,7 +73,8 @@ JSONlib {
 			case
 			{ v == inf } { "inf".quote }
 			{ v == inf.neg } { "-inf".quote }
-			{v.asCompileString};
+			{ v.isNaN } { "NaN".quote }
+			{ v.asCompileString }
 		}
 		{ v.isKindOf(Boolean) } { v.asBoolean }
 		{ v.isKindOf(SequenceableCollection) } {
@@ -112,6 +113,9 @@ JSONlib {
 		};
 
 		^case
+		{ v == "inf" } { inf }
+		{ v == "-inf" } { -inf }
+		{ v == "NaN" } { 0/0 }
 		{ v.isString and: { v.every { |x| x.isDecDigit } } } { v.asInteger }
 		// see https://www.json.org/json-en.html Number section and
 		// https://stackoverflow.com/a/6425559/3475778
