@@ -116,7 +116,7 @@ JSONlib {
 		{ v == "inf" } { inf }
 		{ v == "-inf" } { -inf }
 		{ v == "NaN" } { 0/0 }
-		{ v.isString and: { v.every { |x| x.isDecDigit } } } { v.asInteger }
+		{ v.isString and: { "^[-]?(0|[1-9][0-9]*)?$".matchRegexp(v.asString) } } { v.asInteger }
 		// see https://www.json.org/json-en.html Number section and
 		// https://stackoverflow.com/a/6425559/3475778
 		{ v.isString and: { "^[-]?(0|[1-9][0-9]*)(\\.[0-9]+)?([eE][+-]?[0-9]+)?$".matchRegexp(v.asString) } } { v.asFloat }
