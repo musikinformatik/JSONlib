@@ -73,7 +73,7 @@ JSONlib {
 			case
 			{ v == inf } { "inf".quote }
 			{ v == inf.neg } { "-inf".quote }
-			{v.asCompileString};
+			{ v.asCompileString }
 		}
 		{ v.isKindOf(Boolean) } { v.asBoolean }
 		{ v.isKindOf(SequenceableCollection) } {
