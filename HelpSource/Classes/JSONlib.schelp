@@ -12,9 +12,9 @@ SUBSECTION::Quickstart
 Encoding
 
 code::
-e = (\my: "mapping");
+e = (\foo: "mapping");
 e.asJSON;
-// -> { "my": "mapping" }
+// -> { "foo": "mapping" }
 
 // or use the lib directly
 JSONlib.convertToJSON(e);
@@ -294,7 +294,7 @@ SUBSECTION::Convert a JSON string to an Event
 See link::#*convertToSC:: on advice how to handle escaping of JSON strings.
 
 code::
-j = "{\"my\": 42}";
+j = "{\"foo\": 42}";
 
 // as event
 e = JSONlib.convertToSC(j);
