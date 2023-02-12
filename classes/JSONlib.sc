@@ -40,10 +40,10 @@ JSONlib {
 	}
 
 	prConvertToJson {|v|
-		var array;
+		var array, val;
 
 		if(customEncoder.notNil) {
-			var val = customEncoder.value(v);
+			val = customEncoder.value(v);
 			if(val.notNil) {
 				^val
 			}
@@ -103,9 +103,9 @@ JSONlib {
 	}
 
 	prConvertToSC { |v|
-		var res;
+		var res, val;
 		if(customDecoder.notNil) {
-			var val = customDecoder.value(v);
+			val = customDecoder.value(v);
 			if(val.notNil) {
 				^val
 			}
