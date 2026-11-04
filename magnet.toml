@@ -1,0 +1,21 @@
+magnet-version = 1
+
+[package]
+name = "JSONlib"
+version = "0.1.0"
+sclang = ">=3.10"
+
+[metadata]
+summary = "A JSON en- and decoder for SuperCollider"
+authors = [{ name = "Julian Rohrhuber" }, { name = "Dennis Scheiba" }]
+license = "GPL-3.0-or-later"
+repository = "https://github.com/musikinformatik/JSONlib"
+tags = ["json"]
+
+[dependencies]
+
+[artifact.quark]
+# Every file gets packaged, like the legacy Quark system installs it (hidden files,
+# dist/ and magnet_packages/ never are). Narrow it down, e.g. to "Classes/**",
+# "HelpSource/**" and "*.quark", or skip files via `exclude` in [artifact]
+paths = ["**"]

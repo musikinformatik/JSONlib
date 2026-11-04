@@ -1,0 +1,5 @@
+lock-version = 1
+index = "https://git.magnet.supercollider.online/magnet_index.git"
+index-http = "https://magnet.supercollider.online/index/"
+
+[dependencies]
